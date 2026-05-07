@@ -43,6 +43,48 @@
 			(currentModel.providers?.length ?? 0) > 0
 	);
 
+	// Auto-mode composition: up to 6 provider micro-avatars packed inside the same
+	// 14×14 box that the magic-wand fills. Layouts hand-tuned for visual balance.
+	type Slot = { x: number; y: number; w: number; h: number };
+	const COMPOSITION_LAYOUTS: Record<number, Slot[]> = {
+		1: [{ x: 0, y: 0, w: 14, h: 14 }],
+		2: [
+			{ x: 0, y: 4, w: 6, h: 6 },
+			{ x: 8, y: 4, w: 6, h: 6 },
+		],
+		3: [
+			{ x: 4, y: 0, w: 6, h: 6 },
+			{ x: 0, y: 8, w: 6, h: 6 },
+			{ x: 8, y: 8, w: 6, h: 6 },
+		],
+		4: [
+			{ x: 0, y: 0, w: 6, h: 6 },
+			{ x: 8, y: 0, w: 6, h: 6 },
+			{ x: 0, y: 8, w: 6, h: 6 },
+			{ x: 8, y: 8, w: 6, h: 6 },
+		],
+		5: [
+			{ x: 0, y: 1, w: 4, h: 4 },
+			{ x: 5, y: 1, w: 4, h: 4 },
+			{ x: 10, y: 1, w: 4, h: 4 },
+			{ x: 3, y: 9, w: 4, h: 4 },
+			{ x: 7, y: 9, w: 4, h: 4 },
+		],
+		6: [
+			{ x: 0, y: 1, w: 4, h: 4 },
+			{ x: 5, y: 1, w: 4, h: 4 },
+			{ x: 10, y: 1, w: 4, h: 4 },
+			{ x: 0, y: 9, w: 4, h: 4 },
+			{ x: 5, y: 9, w: 4, h: 4 },
+			{ x: 10, y: 9, w: 4, h: 4 },
+		],
+	};
+
+	let compositionProviders = $derived(providerList.slice(0, 6));
+	let compositionLayout = $derived(
+		COMPOSITION_LAYOUTS[Math.min(compositionProviders.length, 6)] ?? []
+	);
+
 	function setProvider(v: string) {
 		settings.update((s) => ({
 			...s,
@@ -59,7 +101,37 @@
 			class="ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 pl-2 pr-2 text-xs font-normal text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 sm:h-7"
 		>
 			{#if currentValue === "auto"}
-				<CarbonMagicWandFilled class="size-3.5 text-gray-600 dark:text-gray-300" />
+				{#if compositionLayout.length === 0}
+					<CarbonMagicWandFilled class="size-3.5 text-gray-600 dark:text-gray-300" />
+				{:else}
+					<span class="relative size-3.5 flex-none" aria-hidden="true">
+						{#each compositionLayout as slot, i (compositionProviders[i].provider)}
+							{@const hubOrg =
+								PROVIDERS_HUB_ORGS[
+									compositionProviders[i].provider as keyof typeof PROVIDERS_HUB_ORGS
+								]}
+							{#if hubOrg}
+								<img
+									src="https://huggingface.co/api/avatars/{hubOrg}"
+									alt=""
+									class="absolute rounded-[1px] bg-white object-cover ring-1 ring-black/5 dark:bg-gray-900 dark:ring-white/10"
+									style:left="{slot.x}px"
+									style:top="{slot.y}px"
+									style:width="{slot.w}px"
+									style:height="{slot.h}px"
+								/>
+							{:else}
+								<span
+									class="absolute rounded-[1px] bg-gray-300 dark:bg-gray-600"
+									style:left="{slot.x}px"
+									style:top="{slot.y}px"
+									style:width="{slot.w}px"
+									style:height="{slot.h}px"
+								></span>
+							{/if}
+						{/each}
+					</span>
+				{/if}
 			{:else if currentValue === "fastest"}
 				<IconFast classNames="size-3.5" />
 			{:else if currentValue === "cheapest"}
