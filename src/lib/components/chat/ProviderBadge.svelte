@@ -56,10 +56,10 @@
 		<Select.Trigger
 			aria-label="Select inference provider"
 			title="Inference provider"
-			class="ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-green-500/10 bg-green-600/10 pl-2 pr-2 text-xs font-semibold text-green-700 transition-colors hover:bg-green-600/20 focus:outline-none dark:bg-green-600/20 dark:text-green-400 dark:hover:bg-green-600/30 sm:h-7"
+			class="ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-green-500/10 bg-green-600/10 pl-2 pr-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-green-600/20 focus:outline-none dark:bg-green-600/20 dark:text-gray-200 dark:hover:bg-green-600/30 sm:h-7"
 		>
 			{#if currentValue === "auto"}
-				<CarbonMagicWandFilled class="size-3.5 text-green-700/80 dark:text-green-400/80" />
+				<CarbonMagicWandFilled class="size-3.5 text-gray-600 dark:text-gray-300" />
 			{:else if currentValue === "fastest"}
 				<IconFast classNames="size-3.5" />
 			{:else if currentValue === "cheapest"}
