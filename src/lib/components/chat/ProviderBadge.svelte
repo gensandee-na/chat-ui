@@ -4,6 +4,7 @@
 	import IconFast from "$lib/components/icons/IconFast.svelte";
 	import IconCheap from "$lib/components/icons/IconCheap.svelte";
 	import CarbonMagicWandFilled from "~icons/carbon/magic-wand-filled";
+	import CarbonChevronDown from "~icons/carbon/chevron-down";
 	import LucideCheck from "~icons/lucide/check";
 	import { useSettingsStore } from "$lib/stores/settings";
 	import { usePublicConfig } from "$lib/utils/PublicConfig.svelte";
@@ -55,7 +56,7 @@
 		<Select.Trigger
 			aria-label="Select inference provider"
 			title="Inference provider"
-			class="ml-1.5 inline-flex h-8 items-center gap-1 px-1 text-xs text-gray-500 transition-colors hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200 sm:h-7"
+			class="ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-300/60 bg-gray-500/10 pl-2 pr-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-500/15 focus:outline-none dark:border-gray-600/60 dark:bg-gray-500/20 dark:text-gray-200 dark:hover:bg-gray-500/30 sm:h-7"
 		>
 			{#if currentValue === "auto"}
 				<CarbonMagicWandFilled class="size-3.5 text-gray-600 dark:text-gray-300" />
@@ -74,6 +75,7 @@
 				{/if}
 			{/if}
 			<span class="leading-none">{triggerLabel}</span>
+			<CarbonChevronDown class="size-3 opacity-80" />
 		</Select.Trigger>
 		<Select.Portal>
 			<Select.Content
