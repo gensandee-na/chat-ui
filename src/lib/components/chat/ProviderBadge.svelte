@@ -43,32 +43,33 @@
 			(currentModel.providers?.length ?? 0) > 0
 	);
 
-	// Auto-mode composition: up to 5 provider micro-avatars packed inside a 16×16
-	// box. Layouts maximize each tile's pixel budget so logos remain recognizable.
+	// Auto-mode composition: up to 5 provider micro-avatars stacked inside a 16×16
+	// box. Tiles overlap so each logo gets a bigger pixel budget; a thin ring around
+	// every tile keeps them visually separated.
 	type Slot = { x: number; y: number; w: number; h: number };
 	const COMPOSITION_LAYOUTS: Record<number, Slot[]> = {
 		1: [{ x: 0, y: 0, w: 16, h: 16 }],
 		2: [
-			{ x: 0, y: 4, w: 8, h: 8 },
-			{ x: 8, y: 4, w: 8, h: 8 },
+			{ x: 0, y: 3, w: 10, h: 10 },
+			{ x: 6, y: 3, w: 10, h: 10 },
 		],
 		3: [
-			{ x: 4, y: 0, w: 8, h: 8 },
-			{ x: 0, y: 8, w: 8, h: 8 },
-			{ x: 8, y: 8, w: 8, h: 8 },
+			{ x: 3, y: 0, w: 10, h: 10 },
+			{ x: 0, y: 6, w: 10, h: 10 },
+			{ x: 6, y: 6, w: 10, h: 10 },
 		],
 		4: [
-			{ x: 0, y: 0, w: 8, h: 8 },
-			{ x: 8, y: 0, w: 8, h: 8 },
-			{ x: 0, y: 8, w: 8, h: 8 },
-			{ x: 8, y: 8, w: 8, h: 8 },
+			{ x: 0, y: 0, w: 9, h: 9 },
+			{ x: 7, y: 0, w: 9, h: 9 },
+			{ x: 0, y: 7, w: 9, h: 9 },
+			{ x: 7, y: 7, w: 9, h: 9 },
 		],
 		5: [
-			{ x: 0, y: 1, w: 5, h: 5 },
-			{ x: 6, y: 1, w: 5, h: 5 },
-			{ x: 11, y: 1, w: 5, h: 5 },
-			{ x: 3, y: 10, w: 5, h: 5 },
-			{ x: 8, y: 10, w: 5, h: 5 },
+			{ x: 0, y: 0, w: 8, h: 8 },
+			{ x: 4, y: 0, w: 8, h: 8 },
+			{ x: 8, y: 0, w: 8, h: 8 },
+			{ x: 1, y: 8, w: 8, h: 8 },
+			{ x: 7, y: 8, w: 8, h: 8 },
 		],
 	};
 
@@ -106,7 +107,7 @@
 								<img
 									src="https://huggingface.co/api/avatars/{hubOrg}"
 									alt=""
-									class="absolute rounded-[2px] bg-white object-cover dark:bg-gray-900"
+									class="absolute rounded-full bg-white object-cover ring-1 ring-white dark:bg-gray-900 dark:ring-gray-700"
 									style:left="{slot.x}px"
 									style:top="{slot.y}px"
 									style:width="{slot.w}px"
@@ -114,7 +115,7 @@
 								/>
 							{:else}
 								<span
-									class="absolute rounded-[2px] bg-gray-300 dark:bg-gray-600"
+									class="absolute rounded-full bg-gray-300 ring-1 ring-white dark:bg-gray-600 dark:ring-gray-700"
 									style:left="{slot.x}px"
 									style:top="{slot.y}px"
 									style:width="{slot.w}px"
