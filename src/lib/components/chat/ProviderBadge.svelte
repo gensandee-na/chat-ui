@@ -43,46 +43,38 @@
 			(currentModel.providers?.length ?? 0) > 0
 	);
 
-	// Auto-mode composition: up to 6 provider micro-avatars packed inside the same
-	// 14×14 box that the magic-wand fills. Layouts hand-tuned for visual balance.
+	// Auto-mode composition: up to 5 provider micro-avatars packed inside a 16×16
+	// box. Layouts maximize each tile's pixel budget so logos remain recognizable.
 	type Slot = { x: number; y: number; w: number; h: number };
 	const COMPOSITION_LAYOUTS: Record<number, Slot[]> = {
-		1: [{ x: 0, y: 0, w: 14, h: 14 }],
+		1: [{ x: 0, y: 0, w: 16, h: 16 }],
 		2: [
-			{ x: 0, y: 4, w: 6, h: 6 },
-			{ x: 8, y: 4, w: 6, h: 6 },
+			{ x: 0, y: 4, w: 8, h: 8 },
+			{ x: 8, y: 4, w: 8, h: 8 },
 		],
 		3: [
-			{ x: 4, y: 0, w: 6, h: 6 },
-			{ x: 0, y: 8, w: 6, h: 6 },
-			{ x: 8, y: 8, w: 6, h: 6 },
+			{ x: 4, y: 0, w: 8, h: 8 },
+			{ x: 0, y: 8, w: 8, h: 8 },
+			{ x: 8, y: 8, w: 8, h: 8 },
 		],
 		4: [
-			{ x: 0, y: 0, w: 6, h: 6 },
-			{ x: 8, y: 0, w: 6, h: 6 },
-			{ x: 0, y: 8, w: 6, h: 6 },
-			{ x: 8, y: 8, w: 6, h: 6 },
+			{ x: 0, y: 0, w: 8, h: 8 },
+			{ x: 8, y: 0, w: 8, h: 8 },
+			{ x: 0, y: 8, w: 8, h: 8 },
+			{ x: 8, y: 8, w: 8, h: 8 },
 		],
 		5: [
-			{ x: 0, y: 1, w: 4, h: 4 },
-			{ x: 5, y: 1, w: 4, h: 4 },
-			{ x: 10, y: 1, w: 4, h: 4 },
-			{ x: 3, y: 9, w: 4, h: 4 },
-			{ x: 7, y: 9, w: 4, h: 4 },
-		],
-		6: [
-			{ x: 0, y: 1, w: 4, h: 4 },
-			{ x: 5, y: 1, w: 4, h: 4 },
-			{ x: 10, y: 1, w: 4, h: 4 },
-			{ x: 0, y: 9, w: 4, h: 4 },
-			{ x: 5, y: 9, w: 4, h: 4 },
-			{ x: 10, y: 9, w: 4, h: 4 },
+			{ x: 0, y: 1, w: 5, h: 5 },
+			{ x: 6, y: 1, w: 5, h: 5 },
+			{ x: 11, y: 1, w: 5, h: 5 },
+			{ x: 3, y: 10, w: 5, h: 5 },
+			{ x: 8, y: 10, w: 5, h: 5 },
 		],
 	};
 
-	let compositionProviders = $derived(providerList.slice(0, 6));
+	let compositionProviders = $derived(providerList.slice(0, 5));
 	let compositionLayout = $derived(
-		COMPOSITION_LAYOUTS[Math.min(compositionProviders.length, 6)] ?? []
+		COMPOSITION_LAYOUTS[Math.min(compositionProviders.length, 5)] ?? []
 	);
 
 	function setProvider(v: string) {
@@ -104,7 +96,7 @@
 				{#if compositionLayout.length === 0}
 					<CarbonMagicWandFilled class="size-3.5 text-gray-600 dark:text-gray-300" />
 				{:else}
-					<span class="relative size-3.5 flex-none" aria-hidden="true">
+					<span class="relative size-4 flex-none" aria-hidden="true">
 						{#each compositionLayout as slot, i (compositionProviders[i].provider)}
 							{@const hubOrg =
 								PROVIDERS_HUB_ORGS[
@@ -114,7 +106,7 @@
 								<img
 									src="https://huggingface.co/api/avatars/{hubOrg}"
 									alt=""
-									class="absolute rounded-[1px] bg-white object-cover ring-1 ring-black/5 dark:bg-gray-900 dark:ring-white/10"
+									class="absolute rounded-[2px] bg-white object-cover dark:bg-gray-900"
 									style:left="{slot.x}px"
 									style:top="{slot.y}px"
 									style:width="{slot.w}px"
@@ -122,7 +114,7 @@
 								/>
 							{:else}
 								<span
-									class="absolute rounded-[1px] bg-gray-300 dark:bg-gray-600"
+									class="absolute rounded-[2px] bg-gray-300 dark:bg-gray-600"
 									style:left="{slot.x}px"
 									style:top="{slot.y}px"
 									style:width="{slot.w}px"
