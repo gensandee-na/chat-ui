@@ -423,7 +423,7 @@
 
 					{#if $enabledServersCount > 0}
 						<div
-							class="ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-blue-500/10 bg-blue-600/10 pl-2 pr-1 text-xs text-blue-700 dark:bg-blue-600/20 dark:text-blue-400 sm:h-7"
+							class="ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-blue-500/10 bg-blue-600/10 pl-2 pr-1 text-xs font-normal text-blue-700 dark:bg-blue-600/20 dark:text-blue-400 sm:h-7"
 							class:grayscale={!modelSupportsTools}
 							class:opacity-60={!modelSupportsTools}
 							class:cursor-help={!modelSupportsTools}
@@ -448,7 +448,7 @@
 											/>
 										{/each}
 										{#if selectedServers.length > 3}
-											<span class="ml-1 text-[10px] font-semibold text-blue-800 dark:text-blue-200">
+											<span class="ml-1 text-[10px] font-normal text-blue-800 dark:text-blue-200">
 												+{selectedServers.length - 3}
 											</span>
 										{/if}
