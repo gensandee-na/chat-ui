@@ -4,7 +4,6 @@
 	import IconFast from "$lib/components/icons/IconFast.svelte";
 	import IconCheap from "$lib/components/icons/IconCheap.svelte";
 	import CarbonMagicWandFilled from "~icons/carbon/magic-wand-filled";
-	import CarbonChevronDown from "~icons/carbon/chevron-down";
 	import LucideCheck from "~icons/lucide/check";
 	import { useSettingsStore } from "$lib/stores/settings";
 	import { usePublicConfig } from "$lib/utils/PublicConfig.svelte";
@@ -75,7 +74,6 @@
 				{/if}
 			{/if}
 			<span class="leading-none">{triggerLabel}</span>
-			<CarbonChevronDown class="size-3 opacity-80" />
 		</Select.Trigger>
 		<Select.Portal>
 			<Select.Content
