@@ -56,7 +56,7 @@
 		<Select.Trigger
 			aria-label="Select inference provider"
 			title="Inference provider"
-			class="ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 pl-2 pr-2 text-xs font-normal text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 sm:h-7"
+			class="ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 pl-2 pr-2 text-xs font-normal text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 sm:h-7"
 		>
 			{#if currentValue === "auto"}
 				<CarbonMagicWandFilled class="size-3.5 text-gray-600 dark:text-gray-300" />
