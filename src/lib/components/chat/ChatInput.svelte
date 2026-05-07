@@ -15,6 +15,8 @@
 	import { TEXT_MIME_ALLOWLIST, IMAGE_MIME_ALLOWLIST_DEFAULT } from "$lib/constants/mime";
 	import MCPServerManager from "$lib/components/mcp/MCPServerManager.svelte";
 	import IconMCP from "$lib/components/icons/IconMCP.svelte";
+	import ProviderBadge from "./ProviderBadge.svelte";
+	import type { Model } from "$lib/types/Model";
 
 	import { isVirtualKeyboard } from "$lib/utils/isVirtualKeyboard";
 	import { requireAuthUser } from "$lib/utils/auth";
@@ -39,6 +41,7 @@
 		modelIsMultimodal?: boolean;
 		// Whether the currently selected model supports tool calling (incl. overrides)
 		modelSupportsTools?: boolean;
+		currentModel?: Model;
 		children?: import("svelte").Snippet;
 		onPaste?: (e: ClipboardEvent) => void;
 		focused?: boolean;
@@ -55,6 +58,7 @@
 
 		modelIsMultimodal = false,
 		modelSupportsTools = true,
+		currentModel,
 		children,
 		onPaste,
 		focused = $bindable(false),
@@ -416,6 +420,8 @@
 							</DropdownMenu.Content>
 						</DropdownMenu.Portal>
 					</DropdownMenu.Root>
+
+					<ProviderBadge {currentModel} />
 
 					{#if $enabledServersCount > 0}
 						<div
