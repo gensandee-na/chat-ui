@@ -2,6 +2,7 @@
 	import MarkdownRenderer from "./MarkdownRenderer.svelte";
 	import BlockWrapper from "./BlockWrapper.svelte";
 	import CarbonChevronRight from "~icons/carbon/chevron-right";
+	import EosIconsLoading from "~icons/eos-icons/loading";
 
 	interface Props {
 		content: string;
@@ -49,11 +50,17 @@
 		>
 			Thinking
 		</span>
-		<CarbonChevronRight
-			class="size-3.5 transition-all duration-200 group-hover/header:text-gray-600 dark:group-hover/header:text-gray-300 {isOpen
-				? 'rotate-90 text-gray-600 dark:text-gray-300'
-				: 'text-gray-400'}"
-		/>
+		{#if loading}
+			<EosIconsLoading
+				class="size-3.5 text-gray-400 group-hover/header:text-gray-600 dark:text-gray-500 dark:group-hover/header:text-gray-300"
+			/>
+		{:else}
+			<CarbonChevronRight
+				class="size-3.5 transition-all duration-200 group-hover/header:text-gray-600 dark:group-hover/header:text-gray-300 {isOpen
+					? 'rotate-90 text-gray-600 dark:text-gray-300'
+					: 'text-gray-400'}"
+			/>
+		{/if}
 	</button>
 
 	<!-- Expandable content -->

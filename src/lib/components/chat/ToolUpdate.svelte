@@ -10,6 +10,7 @@
 	import { ToolResultStatus, type ToolFront } from "$lib/types/Tool";
 	import { page } from "$app/state";
 	import CarbonChevronRight from "~icons/carbon/chevron-right";
+	import EosIconsLoading from "~icons/eos-icons/loading";
 	import BlockWrapper from "./BlockWrapper.svelte";
 
 	interface Props {
@@ -126,11 +127,17 @@
 				>
 					{availableTools.find((entry) => entry.name === toolFnName)?.displayName ?? toolFnName}
 				</code>
-				<CarbonChevronRight
-					class="size-3.5 transition-all duration-200 group-hover/header:text-gray-600 dark:group-hover/header:text-gray-300 {isOpen
-						? 'rotate-90 text-gray-600 dark:text-gray-300'
-						: 'text-gray-400'}"
-				/>
+				{#if isExecuting}
+					<EosIconsLoading
+						class="size-3.5 text-gray-400 group-hover/header:text-gray-600 dark:text-gray-500 dark:group-hover/header:text-gray-300"
+					/>
+				{:else}
+					<CarbonChevronRight
+						class="size-3.5 transition-all duration-200 group-hover/header:text-gray-600 dark:group-hover/header:text-gray-300 {isOpen
+							? 'rotate-90 text-gray-600 dark:text-gray-300'
+							: 'text-gray-400'}"
+					/>
+				{/if}
 			</button>
 			{#if isExecuting && toolProgress}
 				<span class="text-xs text-gray-500 dark:text-gray-400">{progressLabel}</span>
