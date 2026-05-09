@@ -28,6 +28,7 @@
 	import { updateDebouncer } from "$lib/utils/updates.js";
 	import SubscribeModal from "$lib/components/SubscribeModal.svelte";
 	import { loading } from "$lib/stores/loading.js";
+	import { streamStart } from "$lib/utils/haptics";
 	import { requireAuthUser } from "$lib/utils/auth.js";
 	import { isConversationGenerationActive } from "$lib/utils/generationState";
 
@@ -38,6 +39,8 @@
 	let initialRun = true;
 	let showSubscribeModal = $state(false);
 	let stopRequested = $state(false);
+	let stopRequestPromise: Promise<void> | undefined;
+	let messageUpdatesAbortController = new AbortController();
 
 	let files: File[] = $state([]);
 
@@ -214,7 +217,7 @@
 				throw new Error("Message to write to not found");
 			}
 
-			const messageUpdatesAbortController = new AbortController();
+			messageUpdatesAbortController = new AbortController();
 			const streamingMode = resolveStreamingMode($settings);
 
 			const messageUpdatesIterator = await fetchMessageUpdates(
@@ -231,6 +234,7 @@
 						url: s.url,
 						headers: s.headers,
 					})),
+					timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 					streamingMode,
 				},
 				messageUpdatesAbortController.signal
@@ -319,6 +323,9 @@
 						updateDebouncer.maxUpdateTime
 					) {
 						flushBuffer(currentTime);
+					}
+					if (pending) {
+						streamStart();
 					}
 					pending = false;
 				} else if (update.type === MessageUpdateType.FinalAnswer) {
@@ -421,6 +428,12 @@
 		} finally {
 			$loading = false;
 			pending = false;
+			// Wait for the stop request to complete before refreshing data,
+			// so the server has persisted interrupted:true to the database.
+			if (stopRequestPromise) {
+				await stopRequestPromise.catch(() => {});
+				stopRequestPromise = undefined;
+			}
 			await invalidateAll();
 		}
 	}
@@ -429,6 +442,15 @@
 		stopRequested = true;
 		$isAborted = true;
 		$loading = false;
+		messageUpdatesAbortController.abort();
+
+		// Mark the last assistant message as interrupted locally so
+		// isConversationGenerationActive() immediately returns false,
+		// removing the background poller and preventing $loading re-enable.
+		const lastAssistant = messages.findLast((m) => m.from === "assistant");
+		if (lastAssistant) {
+			lastAssistant.interrupted = true;
+		}
 
 		const sendStopRequest = async () => {
 			const response = await fetch(`${base}/conversation/${page.params.id}/stop-generating`, {
@@ -439,17 +461,24 @@
 			}
 		};
 
-		try {
-			await sendStopRequest();
-		} catch (firstErr) {
+		// Store the promise so writeMessage's finally block can await it
+		// before calling invalidateAll() — ensures the server has persisted
+		// interrupted:true before we fetch fresh data.
+		stopRequestPromise = (async () => {
 			try {
-				await new Promise((resolve) => setTimeout(resolve, 300));
 				await sendStopRequest();
-			} catch (retryErr) {
-				console.error("Failed to stop generation", firstErr, retryErr);
-				$error = "Failed to stop generation. Please try again.";
+			} catch (firstErr) {
+				try {
+					await new Promise((resolve) => setTimeout(resolve, 300));
+					await sendStopRequest();
+				} catch (retryErr) {
+					console.error("Failed to stop generation", firstErr, retryErr);
+					$error = "Failed to stop generation. Please try again.";
+				}
 			}
-		}
+		})();
+
+		await stopRequestPromise;
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -544,6 +573,7 @@
 
 		$isAborted = true;
 		$loading = false;
+		messageUpdatesAbortController.abort();
 	});
 
 	let title = $derived.by(() => {

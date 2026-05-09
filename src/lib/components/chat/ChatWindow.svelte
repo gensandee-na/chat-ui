@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Message, MessageFile } from "$lib/types/Message";
-	import { onDestroy } from "svelte";
+	import { onDestroy, tick } from "svelte";
 
 	import IconOmni from "$lib/components/icons/IconOmni.svelte";
 	import IconCheap from "$lib/components/icons/IconCheap.svelte";
@@ -44,6 +44,7 @@
 
 	import { isVirtualKeyboard } from "$lib/utils/isVirtualKeyboard";
 	import { requireAuthUser } from "$lib/utils/auth";
+	import { tap, error as hapticError } from "$lib/utils/haptics";
 	import { page } from "$app/state";
 	import {
 		isMessageToolCallUpdate,
@@ -102,6 +103,7 @@
 
 	const handleSubmit = () => {
 		if (requireAuthUser() || loading || !draft) return;
+		tap();
 		onmessage?.(draft);
 		draft = "";
 	};
@@ -161,17 +163,6 @@
 	};
 
 	let lastMessage = $derived(browser && (messages.at(-1) as Message));
-	// Scroll signal includes tool updates and thinking blocks to trigger scroll on all content changes
-	let scrollSignal = $derived.by(() => {
-		const last = messages.at(-1) as Message | undefined;
-		if (!last) return `${messages.length}:0`;
-
-		// Count tool updates to trigger scroll when new tools are called or complete
-		const toolUpdateCount = last.updates?.length ?? 0;
-
-		// Include content length, tool count, and message count in signal
-		return `${last.id}:${last.content.length}:${messages.length}:${toolUpdateCount}`;
-	});
 	let streamingAssistantMessage = $derived(
 		(() => {
 			for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -264,11 +255,27 @@
 
 	let chatContainer: HTMLElement | undefined = $state();
 
-	// Force scroll to bottom when user sends a new message
-	// Pattern: user message + empty assistant message are added together
-	let prevMessageCount = $state(messages.length);
+	// Force scroll to bottom when user sends a new message or switches conversation
+	let prevMessageCount = $state(0);
+	// svelte-ignore state_referenced_locally
+	let prevFirstMessageId = $state(messages.at(0)?.id);
 	let forceReattach = $state(0);
+	let scrollBehavior: "auto" | "instant" | "smooth" = $state("instant");
 	$effect(() => {
+		const firstMessageId = messages.at(0)?.id;
+
+		// Conversation switch: first message ID changed
+		if (firstMessageId !== prevFirstMessageId) {
+			prevFirstMessageId = firstMessageId;
+			scrollBehavior = "instant";
+			forceReattach++;
+			spacerActive = 0;
+			spacerHeight = MIN_SPACER_PX;
+			prevMessageCount = messages.length;
+			return;
+		}
+
+		// New user message: user message + empty assistant message added together
 		if (messages.length > prevMessageCount) {
 			const last = messages.at(-1);
 			const secondLast = messages.at(-2);
@@ -279,14 +286,77 @@
 				last?.content === "";
 
 			if (userJustSentMessage) {
+				scrollBehavior = "smooth";
 				forceReattach++;
+				// Only activate dynamic spacer after the first exchange
+				// (first user+assistant pair scrolls normally)
+				spacerActive = prevMessageCount >= 2 ? spacerActive + 1 : 0;
 			}
 		}
 		prevMessageCount = messages.length;
 	});
 
 	// Combined scroll dependency for the action
-	let scrollDependency = $derived({ signal: scrollSignal, forceReattach });
+	let scrollDependency = $derived({ forceReattach, scrollBehavior });
+
+	// Dynamic bottom spacer for ChatGPT-style scroll (new message appears near top of viewport)
+	const MIN_SPACER_PX = 208; // equivalent to pb-52
+	const SPACER_TOP_OFFSET_PX = 50; // breathing room above the user message
+	let spacerEl: HTMLElement | undefined = $state();
+	let messagesEl: HTMLElement | undefined = $state();
+	let spacerHeight = $state(MIN_SPACER_PX);
+	let spacerActive = $state(0); // 0 = inactive, >0 = active (counter to force effect re-run)
+
+	function computeSpacerHeight(): number {
+		if (!chatContainer || !spacerEl) return MIN_SPACER_PX;
+
+		const userMsgs = chatContainer.querySelectorAll('[data-message-type="user"]');
+		const lastUserMsg = userMsgs[userMsgs.length - 1] as HTMLElement | undefined;
+		if (!lastUserMsg) return MIN_SPACER_PX;
+
+		const viewportHeight = chatContainer.clientHeight;
+		const containerRect = chatContainer.getBoundingClientRect();
+		const scrollTop = chatContainer.scrollTop;
+
+		// Use the spacer element's own position as reference — this naturally accounts
+		// for all flex gaps, padding, and layout between the user message and the spacer.
+		const userMsgScrollTop =
+			lastUserMsg.getBoundingClientRect().top - containerRect.top + scrollTop;
+		const spacerScrollTop = spacerEl.getBoundingClientRect().top - containerRect.top + scrollTop;
+
+		const contentHeight = spacerScrollTop - userMsgScrollTop;
+		return Math.max(MIN_SPACER_PX, viewportHeight - contentHeight - SPACER_TOP_OFFSET_PX);
+	}
+
+	$effect(() => {
+		// Don't gate on `loading` — the spacer must be computed immediately when
+		// spacerActive is set (same tick as forceReattach++) so that the spacer
+		// height is correct BEFORE snapScrollToBottom's scrollToBottom() fires.
+		if (!spacerActive || !chatContainer || !messagesEl) return;
+
+		const container = chatContainer;
+
+		// Observe the messages wrapper (has h-max, resizes with content)
+		// instead of the mx-auto container (has h-full, may not resize).
+		const observer = new ResizeObserver(() => {
+			spacerHeight = computeSpacerHeight();
+			// The mx-auto container has h-full so its ResizeObserver in
+			// snapScrollToBottom may not fire during streaming. Scroll here
+			// to keep up with growing content, but only if user is near bottom.
+			tick().then(() => {
+				const dist = container.scrollHeight - container.scrollTop - container.clientHeight;
+				// Use a tight threshold (matching snapScrollToBottom's BOTTOM_THRESHOLD)
+				// to avoid overriding user scroll intent during streaming.
+				if (dist < 50) {
+					container.scrollTo({ top: container.scrollHeight });
+				}
+			});
+		});
+		observer.observe(messagesEl);
+		spacerHeight = computeSpacerHeight();
+
+		return () => observer.disconnect();
+	});
 
 	const settings = useSettingsStore();
 	let hideRouterExamples = $derived($settings.hidePromptExamples?.[currentModel.id] ?? false);
@@ -339,13 +409,16 @@
 			activeRouterExamplePrompt &&
 			routerFollowUps.length > 0 &&
 			routerUserMessages.length === 1 &&
-			currentModel.isRouter &&
+			(currentModel.isRouter || (modelSupportsTools && $allBaseServersEnabled)) &&
 			!hideRouterExamples &&
 			!loading
 	);
 
 	$effect(() => {
-		if (!currentModel.isRouter || !messages.length) {
+		if (
+			!(currentModel.isRouter || (modelSupportsTools && $allBaseServersEnabled)) ||
+			!messages.length
+		) {
 			activeRouterExamplePrompt = null;
 			return;
 		}
@@ -498,7 +571,7 @@
 			{/if}
 
 			{#if messages.length > 0}
-				<div class="flex h-max flex-col gap-8 pb-52 xl:gap-12">
+				<div bind:this={messagesEl} class="flex h-max flex-col gap-8 xl:gap-12">
 					{#each messages as message, idx (message.id)}
 						<ChatMessage
 							{loading}
@@ -516,6 +589,8 @@
 						<ModelSwitch {models} {currentModel} />
 					{/if}
 				</div>
+				<!-- Dynamic bottom spacer: large when streaming new message, shrinks as response grows -->
+				<div bind:this={spacerEl} class="flex-shrink-0" style="height: {spacerHeight}px;"></div>
 			{:else if pending}
 				<ChatMessage
 					loading={true}
@@ -550,7 +625,7 @@
 			dark:from-gray-900 dark:via-gray-900/100
 			dark:to-gray-900/0 max-sm:py-0 sm:px-5 md:pb-4 xl:max-w-4xl [&>*]:pointer-events-auto"
 	>
-		{#if !draft.length && !messages.length && !sources.length && !loading && currentModel.isRouter && activeExamples.length && !hideRouterExamples && !lastIsError && $mcpServersLoaded}
+		{#if !draft.length && !messages.length && !sources.length && !loading && (currentModel.isRouter || (modelSupportsTools && $allBaseServersEnabled)) && activeExamples.length && !hideRouterExamples && !lastIsError && $mcpServersLoaded}
 			<div
 				class="no-scrollbar mb-3 flex w-full select-none justify-start gap-2 overflow-x-auto whitespace-nowrap text-gray-400 dark:text-gray-500"
 			>
@@ -662,7 +737,10 @@
 
 						{#if loading}
 							<StopGeneratingBtn
-								onClick={() => onstop?.()}
+								onClick={() => {
+									hapticError();
+									onstop?.();
+								}}
 								showBorder={true}
 								classNames="absolute bottom-2 right-2 size-8 sm:size-7 self-end rounded-full border bg-white text-black shadow transition-none dark:border-transparent dark:bg-gray-600 dark:text-white"
 							/>

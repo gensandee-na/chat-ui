@@ -346,7 +346,8 @@ export async function* runMcpFlow({
 			imageProcessor,
 			mmEnabled
 		);
-		const toolPreprompt = buildToolPreprompt(oaTools);
+		const userTimezone = (locals as unknown as { timezone?: string })?.timezone;
+		const toolPreprompt = buildToolPreprompt(oaTools, userTimezone);
 		const prepromptPieces: string[] = [];
 		if (toolPreprompt.trim().length > 0) {
 			prepromptPieces.push(toolPreprompt);
@@ -480,7 +481,9 @@ export async function* runMcpFlow({
 					headers: {
 						"ChatUI-Conversation-ID": conv._id.toString(),
 						"X-use-cache": "false",
-						...(locals?.token ? { Authorization: `Bearer ${locals.token}` } : {}),
+						...(config.USE_USER_TOKEN === "true" && locals?.token
+							? { Authorization: `Bearer ${locals.token}` }
+							: {}),
 					},
 				}
 			);
@@ -639,7 +642,9 @@ export async function* runMcpFlow({
 							headers: {
 								"ChatUI-Conversation-ID": conv._id.toString(),
 								"X-use-cache": "false",
-								...(locals?.token ? { Authorization: `Bearer ${locals.token}` } : {}),
+								...(config.USE_USER_TOKEN === "true" && locals?.token
+									? { Authorization: `Bearer ${locals.token}` }
+									: {}),
 							},
 						}
 					);

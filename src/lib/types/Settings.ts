@@ -17,6 +17,12 @@ export interface Settings extends Timestamps {
 	customPrompts?: Record<string, string>;
 
 	/**
+	 * Per-model toggle to enable/disable the custom system prompt
+	 * without deleting its contents. Defaults to `true` (enabled).
+	 */
+	customPromptsEnabled?: Record<string, boolean>;
+
+	/**
 	 * Per‑model overrides to enable multimodal (image) support
 	 * even when not advertised by the provider/model list.
 	 * Only the `true` value is meaningful (enables images).
@@ -51,6 +57,12 @@ export interface Settings extends Timestamps {
 	directPaste: boolean;
 
 	/**
+	 * Whether haptic feedback is enabled on supported touch devices.
+	 * Uses the ios-haptics library for cross-platform vibration.
+	 */
+	hapticsEnabled: boolean;
+
+	/**
 	 * Organization to bill inference requests to (HuggingChat only).
 	 * Stores the org's preferred_username. If empty/undefined, bills to personal account.
 	 */
@@ -63,10 +75,12 @@ export const DEFAULT_SETTINGS = {
 	shareConversationsWithModelAuthors: true,
 	activeModel: defaultModel.id,
 	customPrompts: {},
+	customPromptsEnabled: {},
 	multimodalOverrides: {},
 	toolsOverrides: {},
 	hidePromptExamples: {},
 	providerOverrides: {},
 	streamingMode: "smooth",
 	directPaste: false,
+	hapticsEnabled: true,
 } satisfies SettingsEditable;
