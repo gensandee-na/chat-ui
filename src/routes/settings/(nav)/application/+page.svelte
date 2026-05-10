@@ -17,6 +17,8 @@
 	import { browser } from "$app/environment";
 	import { getThemePreference, setTheme, type ThemePreference } from "$lib/switchTheme";
 	import { supportsHaptics } from "$lib/utils/haptics";
+	import { isCapacitorBuild } from "$lib/utils/apiBase";
+	import { authToken } from "$lib/stores/authToken";
 
 	const publicConfig = usePublicConfig();
 	let settings = useSettingsStore();
@@ -100,6 +102,16 @@
 	// Admin: model refresh UI state
 	let refreshing = $state(false);
 	let refreshMessage = $state<string | null>(null);
+
+	// Capacitor token entry state
+	let pendingToken = $state("");
+	function saveCapacitorToken() {
+		authToken.set(pendingToken);
+		pendingToken = "";
+	}
+	function clearCapacitorToken() {
+		authToken.clear();
+	}
 </script>
 
 <div class="flex w-full flex-col gap-4">
@@ -169,6 +181,62 @@
 		</div>
 	{/if}
 	<div class="flex h-full flex-col gap-4 max-sm:pt-0">
+		{#if isCapacitorBuild}
+			<div
+				class="rounded-xl border border-gray-200 bg-white px-3 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+			>
+				<div class="text-[13px] font-medium text-gray-800 dark:text-gray-200">
+					Hugging Face access token
+				</div>
+				<p class="mt-1 text-[12px] text-gray-500 dark:text-gray-400">
+					Required to sign in from the mobile app. Create a read-only token at
+					<a
+						href="https://huggingface.co/settings/tokens"
+						target="_blank"
+						rel="noreferrer"
+						class="underline">huggingface.co/settings/tokens</a
+					>.
+				</p>
+				{#if $authToken}
+					<div class="mt-3 flex items-center gap-2">
+						<span
+							class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+							>Signed in</span
+						>
+						<button
+							class="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+							onclick={clearCapacitorToken}
+							type="button"
+						>
+							Sign out
+						</button>
+					</div>
+				{:else}
+					<form
+						class="mt-3 flex items-center gap-2"
+						onsubmit={(e) => {
+							e.preventDefault();
+							saveCapacitorToken();
+						}}
+					>
+						<input
+							type="password"
+							placeholder="hf_…"
+							bind:value={pendingToken}
+							autocomplete="off"
+							class="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:focus:ring-gray-700"
+						/>
+						<button
+							type="submit"
+							disabled={!pendingToken.trim()}
+							class="rounded-md border border-gray-900 bg-gray-900 px-2.5 py-1 text-xs font-semibold text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white"
+						>
+							Save
+						</button>
+					</form>
+				{/if}
+			</div>
+		{/if}
 		<div
 			class="rounded-xl border border-gray-200 bg-white px-3 shadow-sm dark:border-gray-700 dark:bg-gray-800"
 		>

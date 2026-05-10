@@ -19,6 +19,7 @@
 	import RetryBtn from "../RetryBtn.svelte";
 	import file2base64 from "$lib/utils/file2base64";
 	import { base } from "$app/paths";
+	import { apiFetch } from "$lib/utils/apiFetch";
 	import ChatMessage from "./ChatMessage.svelte";
 	import ScrollToBottomBtn from "../ScrollToBottomBtn.svelte";
 	import ScrollToPreviousBtn from "../ScrollToPreviousBtn.svelte";
@@ -454,7 +455,7 @@
 			const loadedFiles: File[] = [];
 			for (const attachment of example.attachments) {
 				try {
-					const response = await fetch(`${base}/${attachment.src}`);
+					const response = await apiFetch(`${base}/${attachment.src}`);
 					if (!response.ok) continue;
 
 					const blob = await response.blob();
@@ -481,7 +482,7 @@
 		isTranscribing = true;
 
 		try {
-			const response = await fetch(`${base}/api/transcribe`, {
+			const response = await apiFetch(`${base}/api/transcribe`, {
 				method: "POST",
 				headers: { "Content-Type": audioBlob.type },
 				body: audioBlob,
@@ -510,7 +511,7 @@
 		isTranscribing = true;
 
 		try {
-			const response = await fetch(`${base}/api/transcribe`, {
+			const response = await apiFetch(`${base}/api/transcribe`, {
 				method: "POST",
 				headers: { "Content-Type": audioBlob.type },
 				body: audioBlob,

@@ -7,6 +7,8 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"build:static": "ADAPTER=static vite build",
+		"cap:build": "ADAPTER=static vite build && cap sync",
+		"cap:sync": "cap sync",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -19,6 +21,7 @@
 		"prepare": "husky"
 	},
 	"devDependencies": {
+		"@capacitor/cli": "^6.2.1",
 		"@faker-js/faker": "^8.4.1",
 		"@iconify-json/carbon": "^1.1.16",
 		"@iconify-json/eos-icons": "^1.1.6",
@@ -67,6 +70,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@capacitor/core": "^6.2.1",
 		"@huggingface/hub": "^2.2.0",
 		"@huggingface/inference": "^4.11.3",
 		"@iconify-json/bi": "^1.1.21",

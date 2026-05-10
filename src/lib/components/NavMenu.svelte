@@ -131,6 +131,7 @@
 
 <div
 	class="sticky top-0 flex flex-none touch-none items-center justify-between px-1.5 py-3.5 max-sm:pt-0"
+	style="padding-top: max(0.875rem, env(safe-area-inset-top));"
 >
 	<a
 		class="flex select-none items-center rounded-xl text-lg font-semibold"

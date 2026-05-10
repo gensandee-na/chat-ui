@@ -3,6 +3,7 @@
 	import { base } from "$app/paths";
 	import { tick } from "svelte";
 	import { pickSafeMime } from "$lib/utils/mime";
+	import { apiFetch } from "$lib/utils/apiFetch";
 
 	interface Props {
 		open?: boolean;
@@ -77,7 +78,7 @@
 			const params = new URLSearchParams({ url: trimmed });
 			if (acceptMimeTypes.length > 0) params.set("accept", acceptMimeTypes.join(","));
 			const proxyUrl = `${base}/api/fetch-url?${params}`;
-			const res = await fetch(proxyUrl);
+			const res = await apiFetch(proxyUrl);
 			if (!res.ok) {
 				const txt = await res.text();
 				throw new Error(txt || `Failed to fetch (${res.status})`);

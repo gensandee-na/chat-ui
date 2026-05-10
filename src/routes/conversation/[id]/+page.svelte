@@ -15,6 +15,7 @@
 	import { addChildren } from "$lib/utils/tree/addChildren";
 	import { addSibling } from "$lib/utils/tree/addSibling";
 	import { fetchMessageUpdates, resolveStreamingMode } from "$lib/utils/messageUpdates";
+	import { apiFetch } from "$lib/utils/apiFetch";
 	import type { v4 } from "uuid";
 	import { useSettingsStore } from "$lib/stores/settings.js";
 	import { enabledServers } from "$lib/stores/mcpServers";
@@ -453,7 +454,7 @@
 		}
 
 		const sendStopRequest = async () => {
-			const response = await fetch(`${base}/conversation/${page.params.id}/stop-generating`, {
+			const response = await apiFetch(`${base}/conversation/${page.params.id}/stop-generating`, {
 				method: "POST",
 			});
 			if (!response.ok) {

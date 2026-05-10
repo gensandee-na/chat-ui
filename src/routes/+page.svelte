@@ -3,6 +3,7 @@
 	import { base } from "$app/paths";
 	import { page } from "$app/state";
 	import { usePublicConfig } from "$lib/utils/PublicConfig.svelte";
+	import { apiFetch } from "$lib/utils/apiFetch";
 
 	const publicConfig = usePublicConfig();
 
@@ -41,7 +42,7 @@
 			} else {
 				model = data.models[0].id;
 			}
-			const res = await fetch(`${base}/conversation`, {
+			const res = await apiFetch(`${base}/conversation`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

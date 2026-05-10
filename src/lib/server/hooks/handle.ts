@@ -26,6 +26,50 @@ function getClientAddressSafe(event: RequestEvent): string | undefined {
 	}
 }
 
+// Paths reachable from the SPA client. The legacy non-/api routes (/conversation,
+// /settings, /login/callback) need CORS handling for Capacitor builds because
+// the static SPA loads from capacitor:// and calls these routes cross-origin.
+function isCorsPath(pathname: string): boolean {
+	return (
+		pathname.startsWith(`${base}/api/`) ||
+		pathname === `${base}/conversation` ||
+		pathname.startsWith(`${base}/conversation/`) ||
+		pathname === `${base}/settings` ||
+		pathname.startsWith(`${base}/login/callback`)
+	);
+}
+
+// Capacitor's iOS WebView origin is `capacitor://localhost`; Android uses
+// `https://localhost` by default. Both need to be echoed back as the
+// Allow-Origin so credentialed cross-origin requests work.
+function isCapacitorOrigin(origin: string): boolean {
+	try {
+		const u = new URL(origin);
+		if (u.protocol === "capacitor:" && u.hostname === "localhost") return true;
+		if (u.protocol === "https:" && u.hostname === "localhost") return true;
+		return false;
+	} catch {
+		return false;
+	}
+}
+
+function getAllowedOrigin(requestOrigin: string | null): string | undefined {
+	let allowedOrigin = config.PUBLIC_ORIGIN ? new URL(config.PUBLIC_ORIGIN).origin : undefined;
+
+	if (
+		dev ||
+		!requestOrigin ||
+		isHostLocalhost(new URL(requestOrigin).hostname) ||
+		isCapacitorOrigin(requestOrigin)
+	) {
+		allowedOrigin = requestOrigin || "*";
+	} else if (allowedOrigin === requestOrigin) {
+		allowedOrigin = requestOrigin;
+	}
+
+	return allowedOrigin;
+}
+
 export async function handleRequest({ event, resolve }: HandleInput): Promise<Response> {
 	// Generate a unique request ID for this request
 	const requestId = crypto.randomUUID();
@@ -33,6 +77,23 @@ export async function handleRequest({ event, resolve }: HandleInput): Promise<Re
 	// Run the entire request handling within the request context
 	return runWithRequestContext(
 		async () => {
+			// CORS preflight: short-circuit before auth/CSRF for any path the SPA calls.
+			if (event.request.method === "OPTIONS" && isCorsPath(event.url.pathname)) {
+				const requestOrigin = event.request.headers.get("origin");
+				const allowed = getAllowedOrigin(requestOrigin);
+				return new Response(null, {
+					status: 204,
+					headers: {
+						...(allowed ? { "Access-Control-Allow-Origin": allowed } : {}),
+						"Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+						"Access-Control-Allow-Headers": "Content-Type, Authorization",
+						"Access-Control-Allow-Credentials": "true",
+						"Access-Control-Max-Age": "86400",
+						Vary: "Origin",
+					},
+				});
+			}
+
 			await ready.then(() => {
 				config.checkForUpdates();
 			});
@@ -147,7 +208,7 @@ export async function handleRequest({ event, resolve }: HandleInput): Promise<Re
 						...(config.PUBLIC_ORIGIN ? [new URL(config.PUBLIC_ORIGIN).host] : []),
 					];
 
-					if (!validOrigins.includes(new URL(origin).host)) {
+					if (!validOrigins.includes(new URL(origin).host) && !isCapacitorOrigin(origin)) {
 						return errorResponse(403, "Invalid referer for POST request");
 					}
 				}
@@ -214,22 +275,9 @@ export async function handleRequest({ event, resolve }: HandleInput): Promise<Re
 				response.headers.append("Cache-Control", "no-store");
 			}
 
-			if (event.url.pathname.startsWith(`${base}/api/`)) {
-				// get origin from the request
+			if (isCorsPath(event.url.pathname)) {
 				const requestOrigin = event.request.headers.get("origin");
-
-				// get origin from the config if its defined
-				let allowedOrigin = config.PUBLIC_ORIGIN ? new URL(config.PUBLIC_ORIGIN).origin : undefined;
-
-				if (
-					dev || // if we're in dev mode
-					!requestOrigin || // or the origin is null (SSR)
-					isHostLocalhost(new URL(requestOrigin).hostname) // or the origin is localhost
-				) {
-					allowedOrigin = "*"; // allow all origins
-				} else if (allowedOrigin === requestOrigin) {
-					allowedOrigin = requestOrigin; // echo back the caller
-				}
+				const allowedOrigin = getAllowedOrigin(requestOrigin);
 
 				if (allowedOrigin) {
 					response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
@@ -238,6 +286,8 @@ export async function handleRequest({ event, resolve }: HandleInput): Promise<Re
 						"GET, POST, PUT, PATCH, DELETE, OPTIONS"
 					);
 					response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+					response.headers.set("Access-Control-Allow-Credentials", "true");
+					response.headers.append("Vary", "Origin");
 				}
 			}
 

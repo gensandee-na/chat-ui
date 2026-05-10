@@ -10,6 +10,8 @@
 	import EosIconsLoading from "~icons/eos-icons/loading";
 	import { base } from "$app/paths";
 	import { TEXT_MIME_ALLOWLIST } from "$lib/constants/mime";
+	import { apiOrigin } from "$lib/utils/apiBase";
+	import { apiFetch } from "$lib/utils/apiFetch";
 
 	interface Props {
 		file: MessageFile;
@@ -22,7 +24,7 @@
 	let showModal = $state(false);
 
 	// Capture URL once at component creation to prevent reactive updates during navigation
-	let urlNotTrailing = page.url.pathname.replace(/\/$/, "");
+	let urlNotTrailing = `${apiOrigin}${page.url.pathname.replace(/\/$/, "")}`;
 
 	function truncateMiddle(text: string, maxLength: number): string {
 		if (text.length <= maxLength) {
@@ -101,7 +103,7 @@
 					<CarbonClose class="text-xl" />
 				</button>
 				{#if file.type === "hash"}
-					{#await fetch(urlNotTrailing + "/output/" + file.value).then((res) => res.text())}
+					{#await apiFetch(urlNotTrailing + "/output/" + file.value).then((res) => res.text())}
 						<div class="flex h-full w-full items-center justify-center">
 							<EosIconsLoading class="text-xl" />
 						</div>

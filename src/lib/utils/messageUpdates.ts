@@ -11,6 +11,7 @@ import {
 } from "$lib/types/MessageUpdate";
 import type { StreamingMode } from "$lib/types/Settings";
 import type { KeyValuePair } from "$lib/types/Tool";
+import { apiFetch } from "$lib/utils/apiFetch";
 
 type MessageUpdateRequestOptions = {
 	base: string;
@@ -71,7 +72,7 @@ export async function fetchMessageUpdates(
 
 	form.append("data", optsJSON);
 
-	const response = await fetch(`${opts.base}/conversation/${conversationId}`, {
+	const response = await apiFetch(`${opts.base}/conversation/${conversationId}`, {
 		method: "POST",
 		body: form,
 		signal: abortController.signal,

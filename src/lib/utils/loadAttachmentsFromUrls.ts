@@ -1,5 +1,6 @@
 import { base } from "$app/paths";
 import { pickSafeMime } from "$lib/utils/mime";
+import { apiFetch } from "$lib/utils/apiFetch";
 
 export interface AttachmentLoadResult {
 	files: File[];
@@ -83,7 +84,7 @@ export async function loadAttachmentsFromUrls(
 			try {
 				// Fetch via our proxy endpoint to bypass CORS
 				const proxyUrl = `${base}/api/fetch-url?${new URLSearchParams({ url })}`;
-				const response = await fetch(proxyUrl);
+				const response = await apiFetch(proxyUrl);
 
 				if (!response.ok) {
 					const errorText = await response.text();

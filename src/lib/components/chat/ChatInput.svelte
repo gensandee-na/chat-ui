@@ -232,7 +232,11 @@
 	);
 </script>
 
-<div class="flex min-h-full flex-1 flex-col" onpaste={onPaste}>
+<div
+	class="flex min-h-full flex-1 flex-col"
+	style="padding-bottom: env(safe-area-inset-bottom);"
+	onpaste={onPaste}
+>
 	<textarea
 		rows="1"
 		tabindex="0"

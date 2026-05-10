@@ -3,6 +3,7 @@
 	import { page } from "$app/state";
 	import { base } from "$app/paths";
 	import type { Model } from "$lib/types/Model";
+	import { apiFetch } from "$lib/utils/apiFetch";
 
 	interface Props {
 		models: Model[];
@@ -23,7 +24,7 @@
 		if (!page.params.id) return;
 
 		try {
-			const response = await fetch(`${base}/conversation/${page.params.id}`, {
+			const response = await apiFetch(`${base}/conversation/${page.params.id}`, {
 				method: "PATCH",
 				headers: {
 					"Content-Type": "application/json",

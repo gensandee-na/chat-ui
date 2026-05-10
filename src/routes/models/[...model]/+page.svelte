@@ -4,6 +4,7 @@
 	import { goto, replaceState } from "$app/navigation";
 	import { onMount, tick } from "svelte";
 	import { usePublicConfig } from "$lib/utils/PublicConfig.svelte";
+	import { apiFetch } from "$lib/utils/apiFetch";
 
 	import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
 	import { findCurrentModel } from "$lib/utils/models";
@@ -34,7 +35,7 @@
 		try {
 			loading = true;
 
-			const res = await fetch(`${base}/conversation`, {
+			const res = await apiFetch(`${base}/conversation`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
