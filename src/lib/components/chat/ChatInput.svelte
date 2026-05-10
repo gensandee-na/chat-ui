@@ -18,6 +18,7 @@
 
 	import { isVirtualKeyboard } from "$lib/utils/isVirtualKeyboard";
 	import { requireAuthUser } from "$lib/utils/auth";
+	import { isNative, requestNativeFiles } from "$lib/native/bridge";
 	import {
 		enabledServersCount,
 		selectedServerIds,
@@ -80,7 +81,23 @@
 	let isMcpManagerOpen = $state(false);
 	let isDropdownOpen = $state(false);
 
-	function openPickerWithAccept(accept: string) {
+	async function openPickerWithAccept(accept: string) {
+		// Inside a WKWebView host, route through the native picker so users get
+		// PHPicker / camera / document picker UX. Falls back to the web file
+		// input if the bridge is missing or rejects.
+		if (isNative) {
+			try {
+				const picked = await requestNativeFiles({ accept, multiple: true });
+				if (picked.length > 0) {
+					files = [...files, ...picked];
+					await tick();
+					void focusTextarea();
+				}
+				return;
+			} catch (err) {
+				console.warn("[chat-input] native picker failed, falling back", err);
+			}
+		}
 		if (!fileInputEl) return;
 		const allAccept = mimeTypes.join(",");
 		fileInputEl.setAttribute("accept", accept);
