@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    uses: huggingface/doc-builder/.github/workflows/build_main_documentation.yml@899185857f31747d2e8a3b5c6139920971997bd8
+    uses: huggingface/doc-builder/.github/workflows/build_main_documentation.yml@093eb65f2e8745457987df060dc392e6bcf1347a
     with:
       commit_sha: ${{ github.sha }}
       package: chat-ui
