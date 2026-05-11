@@ -1,0 +1,166 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # =========================
+  # JavaScript / TypeScript
+  # Monorepo: add one entry per package.json directory
+  # =========================
+
+  # Root package (if you have a package.json at repo root)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "dependabot"]
+    commit-message:
+      prefix: "deps"
+    groups:
+      dev-deps:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+      prod-minor-patch:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # Common monorepo folders — edit/add/remove to match your repo
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "dependabot"]
+    commit-message:
+      prefix: "deps"
+    groups:
+      dev-deps:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+      prod-minor-patch:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/apps/admin"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "dependabot"]
+    commit-message:
+      prefix: "deps"
+    groups:
+      dev-deps:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+      prod-minor-patch:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/ui"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "dependabot"]
+    commit-message:
+      prefix: "deps"
+    groups:
+      dev-deps:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+      prod-minor-patch:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/shared"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "dependabot"]
+    commit-message:
+      prefix: "deps"
+    groups:
+      dev-deps:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+      prod-minor-patch:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # =========================
+  # GitHub Actions
+  # =========================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "dependabot"]
+    commit-message:
+      prefix: "ci"
+
+  # =========================
+  # Python (pip)
+  # Add one entry per folder containing requirements.txt / pyproject.toml / setup.py / Pipfile
+  # =========================
+  - package-ecosystem: "pip"
+    directory: "/python"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "dependabot"]
+    commit-message:
+      prefix: "deps(py)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # =========================
+  # Rust (cargo)
+  # Add one entry per folder containing Cargo.toml
+  # =========================
+  - package-ecosystem: "cargo"
+    directory: "/rust"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "dependabot"]
+    commit-message:
+      prefix: "deps(rust)"
