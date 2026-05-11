@@ -6,6 +6,9 @@ on:
       - main
       - v*-release
 
+permissions:
+  contents: read
+
 jobs:
   build:
     uses: huggingface/doc-builder/.github/workflows/build_main_documentation.yml@899185857f31747d2e8a3b5c6139920971997bd8

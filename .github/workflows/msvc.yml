@@ -1,0 +1,115 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+#
+# Find more information at:
+# https://github.com/microsoft/msvc-code-analysis-action
+
+name: MSVC (Windows)
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+  workflow_dispatch:
+
+concurrency:
+  group: msvc-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build & Test (${{ matrix.config }})
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Debug, Release]
+
+    env:
+      BUILD_DIR: build
+      CTEST_OUTPUT_ON_FAILURE: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CMake & Ninja
+        uses: lukka/get-cmake@latest # [1](https://wiki.penguinmod.com/wiki/PenguinAI)
+
+      - name: Setup MSVC dev environment (cl.exe)
+        uses: ilammy/msvc-dev-cmd@v1 # [2](https://github.com/citizenfx/cfx-server-data/blob/master/resources/%5Bgameplay%5D/chat/cl_chat.lua)[3](https://www.reddit.com/r/ruby/comments/eepkyc/gemfile_vs_gemfilelock/)
+
+      - name: Cache CMake build folder
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.BUILD_DIR }}
+          key: cmake-${{ runner.os }}-${{ matrix.config }}-${{ hashFiles('**/CMakeLists.txt', '**/CMakePresets.json', '**/vcpkg.json', '**/*.cmake') }}
+          restore-keys: |
+            cmake-${{ runner.os }}-${{ matrix.config }}-
+
+      - name: Detect CMake presets
+        id: presets
+        shell: pwsh
+        run: |
+          if (Test-Path "CMakePresets.json") {
+            "has_presets=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            "has_presets=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
+      - name: Configure (CMake Preset)
+        if: steps.presets.outputs.has_presets == 'true'
+        shell: pwsh
+        run: |
+          $preset = "${{ matrix.config }}"
+          cmake --preset $preset
+
+      - name: Build (CMake Preset)
+        if: steps.presets.outputs.has_presets == 'true'
+        shell: pwsh
+        run: |
+          $preset = "${{ matrix.config }}"
+          cmake --build --preset $preset
+
+      - name: Test (CMake Preset)
+        if: steps.presets.outputs.has_presets == 'true'
+        shell: pwsh
+        run: |
+          $preset = "${{ matrix.config }}"
+          ctest --preset $preset --output-on-failure
+
+      - name: Configure (CMake, Ninja)
+        if: steps.presets.outputs.has_presets != 'true'
+        shell: pwsh
+        run: |
+          cmake -S . -B $env:BUILD_DIR -G "Ninja" -DCMAKE_BUILD_TYPE="${{ matrix.config }}"
+
+      - name: Build (CMake)
+        if: steps.presets.outputs.has_presets != 'true'
+        shell: pwsh
+        run: |
+          cmake --build $env:BUILD_DIR --config "${{ matrix.config }}"
+
+      - name: Test (CTest)
+        if: steps.presets.outputs.has_presets != 'true'
+        shell: pwsh
+        run: |
+          ctest --test-dir $env:BUILD_DIR -C "${{ matrix.config }}" --output-on-failure
+
+      - name: Upload build logs (best effort)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: msvc-${{ matrix.config }}-logs
+          if-no-files-found: ignore
+          path: |
+            ${{ env.BUILD_DIR }}/CMakeFiles/CMakeOutput.log
+            ${{ env.BUILD_DIR }}/CMakeFiles/CMakeError.log
+            ${{ env.BUILD_DIR }}/Testing/Temporary/LastTest.log

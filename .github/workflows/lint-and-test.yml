@@ -6,50 +6,62 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-      - run: |
-          npm install ci
+
+      - run: npm ci
+
       - name: "Checking lint/format errors"
-        run: |
-          npm run lint
+        run: npm run lint
+
       - name: "Checking type errors"
-        run: |
-          npm run check
+        run: npm run check
 
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
+
       - run: |
           npm ci
-          npx playwright install
+          npx playwright install --with-deps
+
       - name: "Tests"
-        run: |
-          npm run test
+        run: npm run test
 
   build-check:
     runs-on:
       group: aws-general-8-plus
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Build Docker image
         run: |
           docker build \

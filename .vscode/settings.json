@@ -10,5 +10,10 @@
 	},
 	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"codeQL.createQuery.qlPackLocation": "c:\\Users\\gensa\\OneDrive\\chat-ui",
+	"editor.codeActions.triggerOnFocusChange": true,
+	"[jsonc]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
 	}
 }
