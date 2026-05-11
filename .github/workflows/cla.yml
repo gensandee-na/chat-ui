@@ -16,17 +16,14 @@ jobs:
   cla:
     name: CLA Verification
     runs-on: ubuntu-latest
-
     steps:
       - name: CLA Assistant
-        uses: contributor-assistant/github-action@v2
+        uses: contributor-assistant/github-action@v2.6.1
         with:
           path-to-signatures: "signatures/cla.json"
           path-to-document: "CLA.md"
           branch: "cla-signatures"
-          allowlist: "dependabot[bot],github-actions[bot]"
-          remote-organization-name: ""
-          remote-repository-name: ""
+          allowlist: "dependabot[bot],github-actions[bot],gensandee-na"
           create-file-commit-message: "$contributorName has signed the CLA"
           signed-commit-message: "CLA signed"
           custom-notsigned-prcomment: |
@@ -35,12 +32,3 @@ jobs:
             Please sign the Contributor License Agreement before we can review your PR.
 
             👉 Add this comment:
-            ```
-            I have read and agree to the Contributor License Agreement.
-            ```
-
-          custom-pr-sign-comment: |
-            ✅ Thanks for signing the CLA!
-
-          custom-allsigned-prcomment: |
-            ✅ All contributors have signed the CLA.
