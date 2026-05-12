@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true,
+		"target": "ES2018",
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"outDir": "dist",
+		"verbatimModuleSyntax": false
+	},
+	"include": [
+		"hf-action-agent.ts",
+		"backend-client.ts",
+		"chatui-driver.ts",
+		"index.ts",
+		"types.ts",
+		"tests/**/*.ts"
+	],
+	"exclude": ["node_modules", "src"]
+}
